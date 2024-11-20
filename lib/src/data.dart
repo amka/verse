@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'package:crypto/crypto.dart';
+import 'package:path/path.dart';
 
 const String gitDir = '.verse';
 
@@ -25,12 +27,10 @@ class DataFolder {
   ///
   /// Returns:
   ///   A `Future<void>` that completes once the creation operation has finished.
-  ///
-  /// Throws:
-  ///   - `Exception` if an error occurs during the creation process.
   Future<void> init() async {
     if (!await _dir.exists()) {
       await _dir.create(recursive: true);
+      await Directory(join(_dir.path, 'objects')).create(recursive: true);
     }
   }
 
@@ -41,9 +41,6 @@ class DataFolder {
   ///
   /// Returns:
   ///   A `Future<void>` that completes once the deletion operation has finished.
-  ///
-  /// Throws:
-  ///   - `Exception` if an error occurs during the deletion process.
   Future<void> clear() async {
     if (await _dir.exists()) {
       await _dir.delete(recursive: true);
@@ -54,8 +51,14 @@ class DataFolder {
   ///
   /// Returns:
   ///   A `Future<bool>` that resolves to `true` if the folder is empty, `false` otherwise.
-  ///
-  /// Throws:
-  ///   - `Exception` if an error occurs during the check process.
   Future<bool> empty() async => !await _dir.exists();
+
+  /// Hashes the given data using the SHA-1 algorithm.
+  ///
+  /// Returns:
+  ///   A `List<int>` containing the SHA-1 hash of the given data.
+  List<int> hashObject(List<int> data) {
+    final digest = sha1.convert(data);
+    return digest.bytes;
+  }
 }

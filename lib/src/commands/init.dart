@@ -1,6 +1,6 @@
 import 'package:args/command_runner.dart';
 import 'package:path/path.dart' show current, join;
-import 'data.dart';
+import '../data.dart';
 
 class InitCommand extends Command {
   @override
@@ -13,6 +13,8 @@ class InitCommand extends Command {
   late DataFolder dataFolder;
 
   InitCommand() {
+    argParser.addFlag('force', abbr: 'f', help: 'Force reinitialization.');
+
     final dataPath = join(current, gitDir);
     dataFolder = DataFolder(path: dataPath);
   }
@@ -28,9 +30,13 @@ class InitCommand extends Command {
       dataFolder.init();
       print('Initialized empty verse repository in ${dataFolder.path}');
     } else {
-      dataFolder.clear();
-      dataFolder.init();
-      print('Reinitialized empty verse repository in ${dataFolder.path}');
+      if (argParser.options['force'] == true) {
+        dataFolder.clear();
+        dataFolder.init();
+        print('Reinitialized empty verse repository in ${dataFolder.path}');
+      } else {
+        print('Verse repository already exists in ${dataFolder.path}');
+      }
     }
   }
 }

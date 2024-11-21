@@ -15,6 +15,12 @@ class HashObjectCommand extends Command {
   /// This command reads the contents of a file and computes its SHA-1 hash.
   @override
   void run() async {
+    if (argResults?.arguments == null || argResults!.arguments.isEmpty) {
+      print("Usage: $name <object-id>");
+      print(argParser.usage);
+      return;
+    }
+
     final fileName = argResults?.arguments.first;
     if (fileName != null) {
       // Perform the hashing operation here

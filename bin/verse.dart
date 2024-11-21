@@ -14,7 +14,8 @@ void main(List<String> arguments) {
       'verse', 'A dart implementation of distributed version control.')
     ..addCommand(InitCommand())
     ..addCommand(PullCommand())
-    ..addCommand(HashObjectCommand());
+    ..addCommand(HashObjectCommand())
+    ..addCommand(CatObjectCommand());
 
   try {
     runner.run(arguments);

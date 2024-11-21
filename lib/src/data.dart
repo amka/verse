@@ -64,4 +64,14 @@ class DataFolder {
     await File(join(_dir.path, 'objects', digest)).writeAsBytes(data);
     return digest;
   }
+
+  /// Retrieve data from the Objects folder.
+  ///
+  /// Returns:
+  ///   A `Future<List<int>>` that resolves to the data.
+  /// Throws:
+  ///   - `FileSystemException` if the file does not exist.
+  Future<List<int>> catObject(String digest) async {
+    return await File(join(_dir.path, 'objects', digest)).readAsBytes();
+  }
 }

@@ -27,12 +27,12 @@ class InitCommand extends Command {
   @override
   Future<void> run() async {
     if (await dataFolder.empty()) {
-      dataFolder.init();
+      await dataFolder.init();
       print('Initialized empty verse repository in ${dataFolder.path}');
     } else {
-      if (argParser.options['force'] == true) {
-        dataFolder.clear();
-        dataFolder.init();
+      if (argResults?.flag('force') == true) {
+        await dataFolder.clear();
+        await dataFolder.init();
         print('Reinitialized empty verse repository in ${dataFolder.path}');
       } else {
         print('Verse repository already exists in ${dataFolder.path}');

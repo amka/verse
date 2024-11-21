@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:crypto/crypto.dart';
 import 'package:path/path.dart';
@@ -58,11 +59,17 @@ class DataFolder {
   ///
   /// Returns:
   ///   A `Future<String>` that resolves to the SHA-1 digest of the data.
-  Future<String> hashObject(List<int> data) async {
-    final digest = sha1.convert(data).toString();
+  Future<String> hashObject(List<int> data,
+      [String objectType = 'blob']) async {
+    final objectId = sha1.convert(data).toString();
 
-    await File(join(_dir.path, 'objects', digest)).writeAsBytes(data);
-    return digest;
+    // Add type and null terminator
+    data = List.from(utf8.encode(objectType))
+      ..add(0x00)
+      ..addAll(data);
+
+    await File(join(_dir.path, 'objects', objectId)).writeAsBytes(data);
+    return objectId;
   }
 
   /// Retrieve data from the Objects folder.
@@ -71,7 +78,17 @@ class DataFolder {
   ///   A `Future<List<int>>` that resolves to the data.
   /// Throws:
   ///   - `FileSystemException` if the file does not exist.
-  Future<List<int>> catObject(String digest) async {
-    return await File(join(_dir.path, 'objects', digest)).readAsBytes();
+  Future<List<int>> getObject(String digest, {String? expected}) async {
+    final bytes = await File(join(_dir.path, 'objects', digest)).readAsBytes();
+    final typeTerminator = bytes.indexOf(0x00);
+    if (typeTerminator == -1) {
+      throw FileSystemException('Invalid object type');
+    }
+    final type = String.fromCharCodes(bytes.sublist(0, typeTerminator));
+    if (expected != null && type != expected) {
+      throw FileSystemException(
+          'Unexpected object type: expected $expected, got $type');
+    }
+    return bytes.sublist(typeTerminator + 1);
   }
 }

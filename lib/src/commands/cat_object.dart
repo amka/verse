@@ -11,8 +11,13 @@ class CatObjectCommand extends Command {
   @override
   String get description => 'Display the contents of an object.';
 
+  CatObjectCommand() {
+    argParser.addOption('object-type',
+        abbr: 't', help: 'The object type of the object to display.');
+  }
+
   @override
-  void run() {
+  Future<void> run() async {
     if (argResults?.arguments == null || argResults!.arguments.isEmpty) {
       print("Usage: $name <object-id>");
       print(argParser.usage);
@@ -22,10 +27,11 @@ class CatObjectCommand extends Command {
     // Get the object ID from the arguments (first argument after 'cat-object'
     final objectId = argResults?.arguments.first;
     if (objectId != null) {
+      final objectType = argResults?.option('object-type');
       try {
-        DataFolder().catObject(objectId).then((data) {
-          print(utf8.decode(data));
-        });
+        final data =
+            await DataFolder().getObject(objectId, expected: objectType);
+        print(utf8.decode(data));
       } on FileSystemException catch (e) {
         print("Cannot read object $objectId: ${e.message}");
       }

@@ -107,27 +107,26 @@ class DataFolder {
         continue;
       }
 
+      final name = basename(entry.path);
       if (entry is File) {
         // Write blob
         final type = 'blob';
         final objectId =
             await hashObject(await entry.readAsBytes(), objectType: type);
-        entries.add({'oid': objectId, 'path': entry.path, 'type': type});
+        entries.add({'oid': objectId, 'name': name, 'type': type});
       } else if (entry is Directory) {
         final type = 'tree';
         // print('> Enteting directrory ${entry.path}');
         final objectId = await writeTree(entry.path);
-        entries.add({'oid': objectId, 'path': entry.path, 'type': type});
+        entries.add({'oid': objectId, 'name': name, 'type': type});
       }
     }
 
-    print(entries
-        .map((entry) => '${entry['type']} ${entry['oid']} ${entry['path']}')
-        .join('\n'));
-
-    entries.sort((a, b) => a['path']!.compareTo(b['path']!));
-    final tree = joinAll(entries.map<String>(
-        (entry) => '${entry['type']!} ${entry['oid']!} ${entry['path']!}'));
+    entries.sort((a, b) => a['name']!.compareTo(b['name']!));
+    final tree = entries
+        .map<String>(
+            (entry) => '${entry['type']!} ${entry['oid']!} ${entry['name']!}')
+        .join('\n');
     return hashObject(utf8.encode(tree), objectType: 'tree');
   }
 

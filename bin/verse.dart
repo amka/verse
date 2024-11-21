@@ -15,7 +15,8 @@ void main(List<String> arguments) {
     ..addCommand(InitCommand())
     ..addCommand(PullCommand())
     ..addCommand(HashObjectCommand())
-    ..addCommand(CatObjectCommand());
+    ..addCommand(CatObjectCommand())
+    ..addCommand(WriteTreeCommand());
 
   try {
     runner.run(arguments);

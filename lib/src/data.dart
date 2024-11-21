@@ -60,7 +60,7 @@ class DataFolder {
   /// Returns:
   ///   A `Future<String>` that resolves to the SHA-1 digest of the data.
   Future<String> hashObject(List<int> data,
-      [String objectType = 'blob']) async {
+      {String objectType = 'blob'}) async {
     final objectId = sha1.convert(data).toString();
 
     // Add type and null terminator
@@ -91,4 +91,52 @@ class DataFolder {
     }
     return bytes.sublist(typeTerminator + 1);
   }
+
+  Future<String> writeTree(String path) async {
+    final dir = Directory(path);
+
+    final dirItems = await dir.list(followLinks: false).toList();
+    List<Map<String, String>> entries = [];
+
+    for (final entry in dirItems) {
+      // print('Entry: ${entry.path}');
+
+      // Skip Verse folder
+      if (isIgnored(entry.path)) {
+        // print('Skipping ${entry.path}');
+        continue;
+      }
+
+      if (entry is File) {
+        // Write blob
+        final type = 'blob';
+        final objectId =
+            await hashObject(await entry.readAsBytes(), objectType: type);
+        entries.add({'oid': objectId, 'path': entry.path, 'type': type});
+      } else if (entry is Directory) {
+        final type = 'tree';
+        // print('> Enteting directrory ${entry.path}');
+        final objectId = await writeTree(entry.path);
+        entries.add({'oid': objectId, 'path': entry.path, 'type': type});
+      }
+    }
+
+    print(entries
+        .map((entry) => '${entry['type']} ${entry['oid']} ${entry['path']}')
+        .join('\n'));
+
+    entries.sort((a, b) => a['path']!.compareTo(b['path']!));
+    final tree = joinAll(entries.map<String>(
+        (entry) => '${entry['type']!} ${entry['oid']!} ${entry['path']!}'));
+    return hashObject(utf8.encode(tree), objectType: 'tree');
+  }
+
+  bool isIgnored(String path) =>
+      ignored.any((ignoredPath) => path.contains(ignoredPath));
+
+  List<String> get ignored => [
+        ".verse",
+        ".git",
+        '.dart_tool',
+      ];
 }

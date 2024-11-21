@@ -16,7 +16,8 @@ class DataFolder {
   /// The `path` parameter is optional and specifies the path to the data folder.
   /// If not provided, the current directory will be used.
   DataFolder({String? path}) {
-    _dir = path != null ? Directory(path) : Directory.current;
+    path ??= join(Directory.current.path, gitDir);
+    _dir = Directory(path);
   }
 
   /// Initializes the data folder.
@@ -53,12 +54,14 @@ class DataFolder {
   ///   A `Future<bool>` that resolves to `true` if the folder is empty, `false` otherwise.
   Future<bool> empty() async => !await _dir.exists();
 
-  /// Hashes the given data using the SHA-1 algorithm.
+  /// Store data in the Objects folder.
   ///
   /// Returns:
-  ///   A `List<int>` containing the SHA-1 hash of the given data.
-  List<int> hashObject(List<int> data) {
-    final digest = sha1.convert(data);
-    return digest.bytes;
+  ///   A `Future<String>` that resolves to the SHA-1 digest of the data.
+  Future<String> hashObject(List<int> data) async {
+    final digest = sha1.convert(data).toString();
+
+    await File(join(_dir.path, 'objects', digest)).writeAsBytes(data);
+    return digest;
   }
 }
